@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: simpsons
+
+  datasource:
+    url: jdbc:mysql://host.docker.internal:3306/simpsonsaudit?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: Rafael27
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true

@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="img/cohete.png">
+<title>Tema 5: Docker | Despliegue de Aplicaciones Web</title>
+<style>
+  :root{
+    --bg:#f6f8fb;
+    --panel:#ffffff;
+    --sidebar:#0f172a;
+    --sidebar-hover:#1e293b;
+    --text:#1e293b;
+    --muted:#64748b;
+    --accent:#0ea5e9;
+    --accent-2:#10b981;
+    --border:#e2e8f0;
+    --code-bg:#0f172a;
+    --code-text:#e2e8f0;
+    --code-comment:#64748b;
+    --code-flag:#fbbf24;
+    --code-path:#38bdf8;
+    --warn-bg:#fff7ed;
+    --warn-border:#fb923c;
+    --note-bg:#eff6ff;
+    --note-border:#60a5fa;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.6;
+  }
+  .layout{display:flex;min-height:100vh;}
+
+  /* Sidebar */
+  .sidebar{
+    width:280px;
+    flex-shrink:0;
+    background:var(--sidebar);
+    color:#cbd5e1;
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+    padding:24px 0 40px;
+  }
+  .sidebar-brand{
+    padding:0 24px 20px;
+    border-bottom:1px solid #1e293b;
+    margin-bottom:8px;
+  }
+  .sidebar-brand .tag{
+    display:inline-block;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--accent);
+    background:rgba(14,165,233,.12);
+    padding:3px 8px;
+    border-radius:999px;
+    margin-bottom:10px;
+  }
+  .sidebar-brand h1{
+    font-size:16px;
+    margin:0 0 4px;
+    color:#f1f5f9;
+    line-height:1.35;
+  }
+  .sidebar-brand p{
+    font-size:12.5px;
+    color:var(--muted);
+    margin:0;
+  }
+  .nav-group{padding:16px 12px 0;}
+  .nav-group h2{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:#475569;
+    margin:0 0 6px 12px;
+  }
+  .nav-group ul{list-style:none;margin:0 0 8px;padding:0;}
+  .nav-group a{
+    display:block;
+    padding:7px 12px;
+    border-radius:8px;
+    color:#cbd5e1;
+    text-decoration:none;
+    font-size:13.5px;
+  }
+  .nav-group a:hover{background:var(--sidebar-hover);color:#fff;}
+  .nav-group .soon{
+    display:block;
+    padding:7px 12px;
+    font-size:13.5px;
+    color:#475569;
+    font-style:italic;
+    cursor:default;
+  }
+
+  /* Content */
+  .content{flex:1;min-width:0;padding:48px 56px 100px;max-width:960px;}
+  .hero{margin-bottom:44px;}
+  .hero .eyebrow{
+    color:var(--accent);
+    font-weight:600;
+    font-size:13px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    margin-bottom:8px;
+  }
+  .hero h1{font-size:34px;margin:0 0 12px;color:#0f172a;}
+  .hero p{color:var(--muted);font-size:16px;max-width:640px;margin:0;}
+
+  section{margin-bottom:52px;scroll-margin-top:24px;}
+  h2.section-title{
+    font-size:22px;
+    color:#0f172a;
+    border-bottom:2px solid var(--border);
+    padding-bottom:10px;
+    margin:0 0 20px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  h2.section-title .n{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:26px;height:26px;
+    background:var(--accent);
+    color:#fff;
+    border-radius:7px;
+    font-size:13px;
+    font-weight:700;
+  }
+  h3{font-size:16.5px;color:#0f172a;margin:26px 0 10px;}
+  p{margin:0 0 14px;}
+  ul,ol{margin:0 0 14px;padding-left:22px;}
+  li{margin-bottom:6px;}
+  code.inline{
+    background:#eef2f7;
+    color:#0f172a;
+    padding:2px 6px;
+    border-radius:5px;
+    font-family:"SF Mono",Consolas,Menlo,monospace;
+    font-size:13px;
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:22px 24px;
+    margin-bottom:18px;
+  }
+
+  /* Diagram */
+  .diagram{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+    flex-wrap:wrap;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:28px 20px;
+    margin:18px 0 26px;
+  }
+  .box{
+    background:#f8fafc;
+    border:1.5px solid var(--border);
+    border-radius:10px;
+    padding:14px 18px;
+    text-align:center;
+    min-width:140px;
+  }
+  .box strong{display:block;font-size:14px;color:#0f172a;}
+  .box span{font-size:12px;color:var(--muted);}
+  .arrow{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    font-size:11px;
+    color:var(--muted);
+    min-width:110px;
+  }
+  .arrow .line{width:100%;height:2px;background:var(--accent);position:relative;margin:4px 0;}
+  .arrow .line::after{
+    content:"";
+    position:absolute;right:-1px;top:-4px;
+    border:5px solid transparent;
+    border-left-color:var(--accent);
+  }
+
+  /* Code blocks */
+  pre{
+    background:var(--code-bg);
+    color:var(--code-text);
+    padding:16px 18px;
+    border-radius:10px;
+    overflow-x:auto;
+    font-family:"SF Mono",Consolas,Menlo,monospace;
+    font-size:13px;
+    line-height:1.65;
+    margin:0 0 16px;
+  }
+  pre .c{color:var(--code-comment);}
+  pre .f{color:var(--code-flag);}
+  pre .p{color:var(--code-path);}
+
+  .step{
+    display:flex;
+    gap:14px;
+    margin-bottom:18px;
+  }
+  .step .dot{
+    flex-shrink:0;
+    width:28px;height:28px;
+    border-radius:50%;
+    background:#0f172a;
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12.5px;font-weight:700;
+    margin-top:2px;
+  }
+  .step .body{flex:1;}
+  .step .body h4{margin:0 0 6px;font-size:14.5px;color:#0f172a;}
+
+  table{width:100%;border-collapse:collapse;margin:0 0 20px;font-size:13.5px;}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+  th{background:#f1f5f9;color:#334155;font-size:12px;text-transform:uppercase;letter-spacing:.03em;}
+  td code.inline{white-space:nowrap;}
+
+  .note,.warn{
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:13.5px;
+    margin:0 0 18px;
+  }
+  .note{background:var(--note-bg);border:1px solid var(--note-border);color:#1e3a5f;}
+  .warn{background:var(--warn-bg);border:1px solid var(--warn-border);color:#7c2d12;}
+  .note strong,.warn strong{display:block;margin-bottom:4px;}
+
+  footer{
+    border-top:1px solid var(--border);
+    padding-top:20px;
+    color:var(--muted);
+    font-size:12.5px;
+  }
+
+  @media (max-width:860px){
+    .layout{flex-direction:column;}
+    .sidebar{width:100%;height:auto;position:relative;}
+    .content{padding:32px 20px 80px;}
+  }
+
+  /* Logos de los proyectos (archivos en ./img) */
+  .logos{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 22px;}
+  .logo-card{
+    flex:1;min-width:180px;max-width:260px;margin:0;
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;
+    padding:18px 22px;text-align:center;
+  }
+  .logo-card img{display:block;max-height:64px;max-width:100%;margin:0 auto 10px;}
+  .logo-card figcaption{font-size:12.5px;color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <span class="tag">DAW · Despliegue de Aplicaciones Web</span>
+      <h1>Apuntes de la asignatura</h1>
+      <p>Escuela Profesional Vedruna</p>
+    </div>
+    <div class="nav-group">
+      <h2>Tema 1 · Servidores web</h2>
+      <ul>
+        <li><a href="../TEMA%201-Servidores%20WEB/index.html">Ir al Tema 1 →</a></li>
+      </ul>
+    </div>
+
+    <div class="nav-group">
+      <h2>Tema 2 · Servidores de aplicaciones</h2>
+      <ul>
+        <li><a href="../TEMA%202-Servidores%20de%20Aplicaciones/index.html">Ir al Tema 2 →</a></li>
+      </ul>
+    </div>
+
+    <div class="nav-group">
+      <h2>Tema 3 · Transferencia de archivos</h2>
+      <ul>
+        <li><a href="../TEMA%203%20-%20Servidores%20Transferencia%20de%20Archivos/index.html">Ir al Tema 3 →</a></li>
+      </ul>
+    </div>
+
+    <div class="nav-group">
+      <h2>Tema 4 · Sphinx (documentación)</h2>
+      <ul>
+        <li><a href="../TEMA%204%20-%20Sphinx/index.html">Ir al Tema 4 →</a></li>
+      </ul>
+    </div>
+
+    <div class="nav-group">
+      <h2>Tema 5 · Docker</h2>
+      <ul>
+        <li><a href="#intro">1. ¿Qué es Docker?</a></li>
+        <li><a href="#comandos">2. Comandos básicos</a></li>
+        <li><a href="#entorno">3. Entorno de trabajo</a></li>
+        <li><a href="#dockerfile">4. Práctica 1: Dockerfile de la API</a></li>
+        <li><a href="#compose">5. Práctica 2: docker-compose</a></li>
+        <li><a href="#resumen">6. Comandos y resumen</a></li>
+      </ul>
+    </div>
+
+  </nav>
+
+  <main class="content">
+
+    <div class="hero">
+      <div class="eyebrow">Tema 5</div>
+      <h1>Docker: imágenes, contenedores y Compose</h1>
+      <p>Qué es Docker y cómo se usa para desplegar una aplicación: una práctica en local con una API Spring Boot (<strong>simpsons</strong>) y MySQL, primero con un <strong>Dockerfile</strong> y arrancando los contenedores a mano, y después con <strong>docker-compose</strong> para levantar API y base de datos con un solo comando.</p>
+    </div>
+
+    <!-- 1. INTRO -->
+    <section id="intro">
+      <h2 class="section-title"><span class="n">1</span>¿Qué es Docker?</h2>
+      <p><strong>Docker</strong> es una plataforma para <strong>empaquetar una aplicación con todo lo que necesita</strong> (el runtime, las librerías, la configuración) y ejecutarla de forma aislada en cualquier máquina. Soluciona el clásico <em>"en mi ordenador funciona"</em>: lo que funciona dentro del paquete funciona igual en el portátil del alumno, en un servidor o en Azure.</p>
+
+      <div class="diagram">
+        <div class="box"><strong>Dockerfile</strong><span>la receta</span></div>
+        <div class="arrow"><span>docker build</span><div class="line"></div><span>construye</span></div>
+        <div class="box"><strong>Imagen</strong><span>plantilla de solo lectura</span></div>
+        <div class="arrow"><span>docker run</span><div class="line"></div><span>arranca</span></div>
+        <div class="box"><strong>Contenedor</strong><span>la app en ejecución</span></div>
+      </div>
+
+      <div class="logos">
+        <figure class="logo-card"><img src="img/docker.png" alt="Logo de Docker" onerror="this.closest('figure').style.display='none'"><figcaption>Docker</figcaption></figure>
+        <figure class="logo-card"><img src="img/mysql.png" alt="Logo de MySQL" onerror="this.closest('figure').style.display='none'"><figcaption>MySQL</figcaption></figure>
+      </div>
+
+      <table>
+        <thead><tr><th>Concepto</th><th>Qué es</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Imagen</strong></td><td>Plantilla de solo lectura con la aplicación y sus dependencias. Se identifica por <code class="inline">nombre:etiqueta</code> (por ejemplo <code class="inline">mysql:8.4</code>)</td></tr>
+          <tr><td><strong>Contenedor</strong></td><td>Una imagen en ejecución. De una misma imagen se pueden arrancar muchos contenedores</td></tr>
+          <tr><td><strong>Dockerfile</strong></td><td>Fichero de texto con las instrucciones para construir una imagen</td></tr>
+          <tr><td><strong>Registro</strong></td><td>Almacén de imágenes. El público por defecto es <em>Docker Hub</em> (de ahí salen <code class="inline">mysql</code>, <code class="inline">eclipse-temurin</code>&hellip;)</td></tr>
+          <tr><td><strong>Volumen</strong></td><td>Almacenamiento que vive fuera del contenedor: los datos sobreviven aunque se borre</td></tr>
+          <tr><td><strong>Red</strong></td><td>Red virtual que conecta contenedores entre sí; dentro de ella se encuentran por su nombre</td></tr>
+          <tr><td><strong>Docker Compose</strong></td><td>Herramienta para definir y arrancar varios contenedores a la vez con un único fichero YAML</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Contenedor frente a máquina virtual</h3>
+      <table>
+        <thead><tr><th></th><th>Máquina virtual</th><th>Contenedor</th></tr></thead>
+        <tbody>
+          <tr><td>Sistema operativo</td><td>Lleva uno completo propio</td><td>Comparte el núcleo del sistema anfitrión</td></tr>
+          <tr><td>Tamaño</td><td>Gigas</td><td>Megas</td></tr>
+          <tr><td>Arranque</td><td>Minutos</td><td>Segundos</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 2. COMANDOS -->
+    <section id="comandos">
+      <h2 class="section-title"><span class="n">2</span>Comandos básicos</h2>
+      <table>
+        <thead><tr><th>Comando</th><th>Para qué sirve</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">docker build -t nombre:etiqueta .</code></td><td>Construye una imagen a partir del <code class="inline">Dockerfile</code> de la carpeta actual</td></tr>
+          <tr><td><code class="inline">docker images</code></td><td>Lista las imágenes que hay en el equipo</td></tr>
+          <tr><td><code class="inline">docker run</code></td><td>Crea y arranca un contenedor desde una imagen</td></tr>
+          <tr><td><code class="inline">docker ps</code> / <code class="inline">docker ps -a</code></td><td>Contenedores en ejecución / todos, incluso los parados</td></tr>
+          <tr><td><code class="inline">docker logs -f nombre</code></td><td>Ve la salida de un contenedor en tiempo real (<code class="inline">Ctrl+C</code> sale del log, no para el contenedor)</td></tr>
+          <tr><td><code class="inline">docker exec -it nombre comando</code></td><td>Ejecuta un comando dentro de un contenedor en marcha</td></tr>
+          <tr><td><code class="inline">docker stop</code> / <code class="inline">docker start</code></td><td>Para / arranca un contenedor existente</td></tr>
+          <tr><td><code class="inline">docker rm -f nombre</code></td><td>Borra un contenedor (con <code class="inline">-f</code>, aunque esté en marcha)</td></tr>
+        </tbody>
+      </table>
+
+      <p>Opciones de <code class="inline">docker run</code> que usaremos:</p>
+      <table>
+        <thead><tr><th>Opción</th><th>Qué hace</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">-d</code></td><td>Lo ejecuta en segundo plano (<em>detached</em>)</td></tr>
+          <tr><td><code class="inline">--name nombre</code></td><td>Le da un nombre al contenedor</td></tr>
+          <tr><td><code class="inline">-p 8080:8080</code></td><td>Publica un puerto: <code class="inline">puerto_del_equipo:puerto_del_contenedor</code></td></tr>
+          <tr><td><code class="inline">-e CLAVE=valor</code></td><td>Define una variable de entorno dentro del contenedor</td></tr>
+          <tr><td><code class="inline">--network red</code></td><td>Conecta el contenedor a una red</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 3. ENTORNO -->
+    <section id="entorno">
+      <h2 class="section-title"><span class="n">3</span>Entorno de trabajo y proyecto</h2>
+      <p>Esta sesión se hace <strong>en local</strong>, en tu ordenador (la siguiente se llevará a Azure). Necesitas <strong>Docker Desktop</strong> abierto y en marcha, y <strong>Java 17</strong> para compilar el proyecto (usaremos el <code class="inline">./mvnw</code> que ya trae, no hace falta instalar Maven). Para la práctica 1 usaremos el <strong>MySQL instalado en tu equipo</strong> (puerto 3306); en la práctica 2 lo pondrá Docker.</p>
+
+      <div class="step">
+        <div class="dot">1</div>
+        <div class="body">
+          <h4>Comprobar que Docker funciona</h4>
+          <pre>docker --version
+docker compose version
+docker run hello-world</pre>
+          <p>El último comando descarga una imagen mínima y la ejecuta: si imprime <em>"Hello from Docker!"</em>, todo está bien. Si dice <code class="inline">Cannot connect to the Docker daemon</code>, Docker Desktop no está abierto.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="dot">2</div>
+        <div class="body">
+          <h4>Abrir una terminal en la carpeta del proyecto</h4>
+          <pre>cd simpsons
+ls</pre>
+          <p>Debes ver <code class="inline">pom.xml</code>, <code class="inline">src/</code> y los ficheros de Docker: <code class="inline">Dockerfile</code>, <code class="inline">docker-compose.yml</code> y <code class="inline">.env.example</code>.</p>
+        </div>
+      </div>
+
+      <h3>La API de ejemplo: simpsons</h3>
+      <p>Es una API Spring Boot 3.5 (Java 17) con una sola tabla, <code class="inline">simpsons</code>, en <strong>MySQL</strong>. Escucha en el puerto <strong>8080</strong> y tiene dos endpoints:</p>
+      <table>
+        <thead><tr><th>Método</th><th>Ruta</th><th>Qué hace</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">GET</code></td><td><code class="inline">/api/v1/simpson</code></td><td>Lista los registros (el último primero)</td></tr>
+          <tr><td><code class="inline">POST</code></td><td><code class="inline">/api/v1/simpson</code></td><td>Guarda uno nuevo (<code class="inline">{"name": "...", "picUrl": "..."}</code>)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <strong>Cómo se conecta la API a la base de datos (y por qué no hay que tocar su código)</strong>
+        Su <code class="inline">application.yaml</code> apunta a <code class="inline">jdbc:mysql://localhost:3306/simpsonsaudit</code> con usuario y contraseña fijos. Dentro de un contenedor, <em>localhost</em> es el propio contenedor, así que ahí no hay MySQL. Spring permite <strong>pisar cualquier propiedad con una variable de entorno</strong>: <code class="inline">SPRING_DATASOURCE_URL</code> sustituye a <code class="inline">spring.datasource.url</code>, y lo mismo con <code class="inline">SPRING_DATASOURCE_USERNAME</code> y <code class="inline">SPRING_DATASOURCE_PASSWORD</code>. Además tiene <code class="inline">ddl-auto: update</code>, así que Hibernate crea la tabla solo y no hace falta ningún script SQL.
+      </div>
+    </section>
+
+    <!-- 4. DOCKERFILE -->
+    <section id="dockerfile">
+      <h2 class="section-title"><span class="n">4</span>Práctica 1: Dockerfile y contenedores a mano</h2>
+      <p>Primero solo con el <code class="inline">Dockerfile</code>: construimos la imagen de la API, arrancamos su contenedor y la conectamos al MySQL de tu equipo. Después, con <strong>Docker Compose</strong>, pondremos también la base de datos en un contenedor.</p>
+
+      <div class="step">
+        <div class="dot">1</div>
+        <div class="body">
+          <h4>Compilar el .jar</h4>
+          <pre>./mvnw clean package -DskipTests
+ls target/*.jar</pre>
+          <p>Genera <code class="inline">target/simpsons-0.0.1-SNAPSHOT.jar</code>, el programa ya empaquetado. <code class="inline">-DskipTests</code> evita ejecutar el test de Spring, que necesita una base de datos MySQL arrancada y todavía no la tenemos.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="dot">2</div>
+        <div class="body">
+          <h4>El Dockerfile</h4>
+          <p>Está en la raíz del proyecto. Es corto: parte de una imagen con Java, copia el <code class="inline">.jar</code> y lo ejecuta.</p>
+          <pre>FROM eclipse-temurin:17-jre
+
+WORKDIR /app
+COPY target/*.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]</pre>
+          <table>
+            <thead><tr><th>Instrucción</th><th>Qué hace</th></tr></thead>
+            <tbody>
+              <tr><td><code class="inline">FROM</code></td><td>Imagen base sobre la que se construye. <code class="inline">17-jre</code> lleva solo el Java necesario para <em>ejecutar</em> (no compilar)</td></tr>
+              <tr><td><code class="inline">WORKDIR</code></td><td>Carpeta de trabajo dentro de la imagen</td></tr>
+              <tr><td><code class="inline">COPY</code></td><td>Copia el <code class="inline">.jar</code> del equipo a la imagen, con el nombre <code class="inline">app.jar</code></td></tr>
+              <tr><td><code class="inline">EXPOSE</code></td><td>Documenta el puerto de la aplicación (no lo publica: eso lo hace <code class="inline">-p</code>)</td></tr>
+              <tr><td><code class="inline">ENTRYPOINT</code></td><td>Comando que se ejecuta <strong>al arrancar</strong> el contenedor</td></tr>
+            </tbody>
+          </table>
+          <p>Junto al Dockerfile hay un <code class="inline">.dockerignore</code> (como un <code class="inline">.gitignore</code>): dice qué no se envía a Docker al construir. Entre otras cosas deja fuera <code class="inline">.env</code>, para que los secretos nunca acaben dentro de una imagen.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="dot">3</div>
+        <div class="body">
+          <h4>Construir la imagen</h4>
+          <pre>docker build -t simpsons-api:1.0 .
+docker images</pre>
+          <p><code class="inline">-t</code> le pone nombre y etiqueta a la imagen; el punto final es el <em>contexto</em> (la carpeta cuyos archivos puede copiar <code class="inline">COPY</code>). En <code class="inline">docker images</code> debe aparecer <code class="inline">simpsons-api</code> con la etiqueta <code class="inline">1.0</code>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="dot">4</div>
+        <div class="body">
+          <h4>Preparar la base de datos local</h4>
+          <p>En esta práctica la API se ejecuta en un contenedor, pero la base de datos es el <strong>MySQL instalado en tu equipo</strong>, que debe estar arrancado (puerto 3306). Solo hace falta que exista la base de datos; las tablas las crea la propia API al arrancar (<code class="inline">ddl-auto: update</code>):</p>
+          <pre>mysql -uroot -p -e "CREATE DATABASE IF NOT EXISTS simpsonsaudit;"</pre>
+          <p>Si no tienes el cliente <code class="inline">mysql</code> en la terminal, crea la base de datos <code class="inline">simpsonsaudit</code> desde MySQL Workbench.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="dot">5</div>
+        <div class="body">
+          <h4>Arrancar el contenedor de la API</h4>
+          <pre>docker run -d --name simpsons-api -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL="jdbc:mysql://host.docker.internal:3306/simpsonsaudit?useSSL=false&amp;allowPublicKeyRetrieval=true" \
+  simpsons-api:1.0</pre>
+          <ul>
+            <li><code class="inline">-d</code> lo ejecuta en segundo plano y <code class="inline">--name</code> le da nombre.</li>
+            <li><code class="inline">-p 8080:8080</code> publica el puerto: lo que llegue al 8080 de tu equipo va al 8080 del contenedor.</li>
+            <li>Dentro del contenedor, <code class="inline">localhost</code> es el propio contenedor, no tu equipo, y ahí no hay MySQL. Para llegar al MySQL de tu equipo se usa el nombre especial <code class="inline">host.docker.internal</code>, que Docker Desktop resuelve como "la máquina anfitriona" (en Linux hay que añadir <code class="inline">--add-host=host.docker.internal:host-gateway</code>).</li>
+            <li>El usuario y la contraseña son los del <code class="inline">application.yaml</code> (<code class="inline">root</code> / <code class="inline">root</code>). Si tu MySQL local tiene otra contraseña, añade <code class="inline">-e SPRING_DATASOURCE_USERNAME=...</code> y <code class="inline">-e SPRING_DATASOURCE_PASSWORD=...</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="dot">6</div>
+        <div class="body">
+          <h4>Ver el arranque y probar la API</h4>
+          <pre>docker logs -f simpsons-api</pre>
+          <p>Cuando aparezca <code class="inline">Started SimpsonsApplication</code>, sal del log con <code class="inline">Ctrl+C</code> (el contenedor sigue funcionando) y prueba:</p>
+          <pre>curl http://localhost:8080/api/v1/simpson
+
+curl -X POST http://localhost:8080/api/v1/simpson \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Homer Simpson","picUrl":"https://example.com/homer.png"}'
+
+curl http://localhost:8080/api/v1/simpson</pre>
+          <p>Después del <code class="inline">POST</code>, el segundo <code class="inline">GET</code> devuelve a Homer. El dato está en <strong>tu MySQL local</strong>, no dentro del contenedor, y puedes verlo con:</p>
+          <pre>mysql -uroot -p simpsonsaudit -e "SELECT * FROM simpsons;"</pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="dot">7</div>
+        <div class="body">
+          <h4>Gestionar el contenedor y limpiar</h4>
+          <pre>docker ps                  <span class="c"># en ejecución</span>
+docker stop simpsons-api   <span class="c"># parar</span>
+docker start simpsons-api  <span class="c"># volver a arrancar</span>
+
+<span class="c"># Limpiar antes de la práctica 2:</span>
+docker rm -f simpsons-api</pre>
+          <p>Borrar el contenedor no borra los datos: siguen en tu MySQL. Limpiar es necesario porque la práctica 2 usa el mismo nombre de contenedor y el mismo puerto 8080.</p>
+        </div>
+      </div>
+
+      <div class="warn">
+        <strong>Si la API se cae al arrancar</strong>
+        Mira el motivo con <code class="inline">docker logs simpsons-api</code>. <code class="inline">Communications link failure</code> o <code class="inline">Connection refused</code>: MySQL no está arrancado en tu equipo, o la URL usa <code class="inline">localhost</code> en vez de <code class="inline">host.docker.internal</code>. <code class="inline">Access denied</code>: usuario o contraseña distintos de <code class="inline">root</code> / <code class="inline">root</code>. <code class="inline">Unknown database</code>: falta crear <code class="inline">simpsonsaudit</code> (paso 4). Si MySQL rechaza al usuario <code class="inline">root</code> por venir "desde otra máquina" (<code class="inline">Host ... is not allowed to connect</code>), crea un usuario que acepte cualquier origen y pásalo con <code class="inline">-e</code>:
+        <pre>CREATE USER 'docker'@'%' IDENTIFIED BY 'docker1234';
+GRANT ALL ON simpsonsaudit.* TO 'docker'@'%';</pre>
+      </div>
+
+      <div class="note">
+        <strong>Qué hemos conseguido y qué falta</strong>
+        La API ya va dentro de un contenedor, empaquetada con su Java y lista para llevarla a cualquier sitio, pero la base de datos sigue fuera, en tu equipo. En la práctica 2 pondremos <strong>también MySQL en un contenedor</strong> y Docker Compose se encargará de levantar y conectar los dos.
+      </div>
+    </section>
+
+    <!-- 5. COMPOSE -->
+    <section id="compose">
+      <h2 class="section-title"><span class="n">5</span>Práctica 2: docker-compose</h2>
+      <p><strong>Docker Compose</strong> describe en un único fichero YAML todos los contenedores de la aplicación y cómo se relacionan. Con <code class="inline">docker compose up</code> se crea la red y los dos contenedores, y con <code class="inline">docker compose down</code> se retira todo.</p>
+
+      <h3>5.1 El archivo .env</h3>
+      <p>Compose lee automáticamente el archivo <code class="inline">.env</code> de la carpeta del proyecto. Ahí van los datos de la base de datos, para no escribirlos en el <code class="inline">docker-compose.yml</code>. Se crea copiando el de ejemplo:</p>
+      <pre>cp .env.example .env</pre>
+      <p>Y su contenido es:</p>
+      <pre>DB_USERNAME=simpsons
+DB_PASSWORD=cambia_esta_clave
+DB_NAME=simpsonsaudit</pre>
+      <p>Cambia la contraseña por la tuya. <code class="inline">DB_USERNAME</code> <strong>no puede ser</strong> <code class="inline">root</code>, porque MySQL reserva ese usuario y no deja crearlo con esta variable.</p>
+
+      <h3>5.2 El docker-compose.yml</h3>
+      <pre>services:
+
+  db:
+    image: mysql:8.4
+    container_name: simpsons-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3307:3306"
+
+  api:
+    build: .
+    container_name: simpsons-api
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${DB_NAME}?useSSL=false&amp;allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}</pre>
+
+      <table>
+        <thead><tr><th>Clave</th><th>Qué hace</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">services</code></td><td>Lista de contenedores: <code class="inline">db</code> y <code class="inline">api</code>. Compose crea una red y cada servicio se encuentra por su nombre (por eso la URL usa <code class="inline">db</code>)</td></tr>
+          <tr><td><code class="inline">image</code> / <code class="inline">build</code></td><td>Usar una imagen ya hecha (<code class="inline">mysql:8.4</code>) / construirla con el <code class="inline">Dockerfile</code> de esta carpeta (<code class="inline">.</code>)</td></tr>
+          <tr><td><code class="inline">container_name</code></td><td>Nombre fijo del contenedor (si no, Compose inventa uno)</td></tr>
+          <tr><td><code class="inline">restart</code></td><td><code class="inline">unless-stopped</code>: el contenedor se reinicia solo si se cae, salvo que lo pares tú</td></tr>
+          <tr><td><code class="inline">environment</code></td><td>Variables de entorno del contenedor (equivale a los <code class="inline">-e</code>). <code class="inline">${DB_PASSWORD}</code> se rellena con el valor del <code class="inline">.env</code></td></tr>
+          <tr><td><code class="inline">ports</code></td><td>Puertos publicados (equivale a <code class="inline">-p</code>). El <code class="inline">3307:3306</code> permite conectar desde Workbench u otro cliente al MySQL del contenedor sin chocar con un MySQL local en el 3306</td></tr>
+          <tr><td><code class="inline">depends_on</code></td><td>Orden de arranque: la API se arranca después del contenedor de MySQL</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <strong>¿Y si la API arranca antes de que MySQL esté listo?</strong>
+        <code class="inline">depends_on</code> solo espera a que el contenedor de MySQL <em>arranque</em>, no a que la base de datos esté lista (tarda unos 20-30 segundos). Por eso la API puede fallar al principio con <code class="inline">Communications link failure</code>. No pasa nada: gracias a <code class="inline">restart: unless-stopped</code> Docker la reinicia sola hasta que MySQL responde. Es normal verla en estado <em>Restarting</em> un par de veces.
+      </div>
+
+      <h3>5.3 Levantar la aplicación</h3>
+      <div class="step">
+        <div class="dot">1</div>
+        <div class="body">
+          <h4>Construir y arrancar todo</h4>
+          <pre>docker compose up -d --build</pre>
+          <p><code class="inline">--build</code> construye la imagen de la API con el <code class="inline">Dockerfile</code> y <code class="inline">-d</code> lo deja en segundo plano. Compose crea la red, arranca MySQL y después la API. Recuerda que el <code class="inline">.jar</code> de <code class="inline">target/</code> debe existir (paso 1 de la práctica 1).</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="dot">2</div>
+        <div class="body">
+          <h4>Ver el estado y los logs</h4>
+          <pre>docker compose ps
+docker compose logs -f api</pre>
+          <p>Espera a que en el log aparezca <code class="inline">Started SimpsonsApplication</code> (si antes salen errores de conexión, es la API reintentando mientras MySQL arranca). Sal de los logs con <code class="inline">Ctrl+C</code>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="dot">3</div>
+        <div class="body">
+          <h4>Probar la API</h4>
+          <pre>curl -X POST http://localhost:8080/api/v1/simpson \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Marge Simpson","picUrl":"https://example.com/marge.png"}'
+
+curl http://localhost:8080/api/v1/simpson</pre>
+        </div>
+      </div>
+
+      <h3>5.4 Parar la aplicación y qué pasa con los datos</h3>
+      <p>Aquí los datos de MySQL viven <strong>dentro del contenedor</strong>. Veamos qué pasa según cómo lo pares:</p>
+
+      <div class="step">
+        <div class="dot">4</div>
+        <div class="body">
+          <h4>Parar y volver a arrancar: los datos se conservan</h4>
+          <pre>docker compose stop
+docker compose start
+curl http://localhost:8080/api/v1/simpson</pre>
+          <p><code class="inline">stop</code> solo apaga los contenedores, no los borra: al arrancarlos de nuevo, Marge sigue ahí.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="dot">5</div>
+        <div class="body">
+          <h4>Bajar todo: los datos se pierden</h4>
+          <pre>docker compose down
+docker compose up -d
+curl http://localhost:8080/api/v1/simpson</pre>
+          <p><code class="inline">down</code> <strong>borra los contenedores y la red</strong>, y con ellos la base de datos. Al volver a levantar, MySQL empieza de cero y la lista sale vacía (<code class="inline">[]</code>). Recuerda esperar a que la API termine de arrancar antes de hacer el <code class="inline">curl</code>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="dot">6</div>
+        <div class="body">
+          <h4>Cambiar el código y reconstruir solo la API</h4>
+          <pre>./mvnw clean package -DskipTests
+docker compose up -d --build api</pre>
+          <p>Primero se recompila el <code class="inline">.jar</code> (el Dockerfile solo lo copia) y después se reconstruye únicamente el servicio <code class="inline">api</code>.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>Para que los datos sobrevivan a un <code class="inline">down</code></strong>
+        Habría que guardarlos fuera del contenedor con un <strong>volumen</strong>. En esta práctica no lo usamos para mantener el fichero lo más sencillo posible.
+      </div>
+
+      <div class="warn">
+        <strong>Si cambias la contraseña del .env</strong>
+        MySQL guarda la contraseña al crear la base de datos. Si la cambias en el <code class="inline">.env</code> y vuelves a hacer <code class="inline">up</code> sin parar antes, la API dará <code class="inline">Access denied</code>. Haz primero <code class="inline">docker compose down -v</code> y levanta de nuevo.
+      </div>
+    </section>
+
+    <!-- 6. RESUMEN -->
+    <section id="resumen">
+      <h2 class="section-title"><span class="n">6</span>Comandos y resumen</h2>
+      <table>
+        <thead><tr><th>Comando</th><th>Para qué sirve</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">docker compose up -d --build</code></td><td>Construir las imágenes y arrancar todos los servicios en segundo plano</td></tr>
+          <tr><td><code class="inline">docker compose ps</code></td><td>Ver el estado de los servicios</td></tr>
+          <tr><td><code class="inline">docker compose logs -f api</code></td><td>Ver el log de un servicio en tiempo real</td></tr>
+          <tr><td><code class="inline">docker compose stop</code> / <code class="inline">start</code></td><td>Parar / volver a arrancar sin borrar nada</td></tr>
+          <tr><td><code class="inline">docker compose down</code></td><td>Borrar contenedores y red (los datos de MySQL se pierden con ellos)</td></tr>
+          <tr><td><code class="inline">docker compose down -v</code></td><td>Lo mismo y además borrar los volúmenes asociados (úsalo si cambias la contraseña del <code class="inline">.env</code>)</td></tr>
+          <tr><td><code class="inline">docker compose up -d --build api</code></td><td>Reconstruir y reiniciar solo la API</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Problemas habituales</h3>
+      <table>
+        <thead><tr><th>Síntoma</th><th>Causa probable</th><th>Solución</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">Cannot connect to the Docker daemon</code></td><td>Docker Desktop no está abierto</td><td>Abrirlo y esperar a que indique que está en marcha</td></tr>
+          <tr><td><code class="inline">COPY failed: no source files</code> en el build</td><td>No existe el <code class="inline">.jar</code> en <code class="inline">target/</code></td><td>Ejecutar <code class="inline">./mvnw clean package -DskipTests</code></td></tr>
+          <tr><td><code class="inline">port is already allocated</code> / <code class="inline">Bind for 0.0.0.0:8080 failed</code></td><td>Otro programa o contenedor usa el 8080 (la API en local, o los contenedores de la práctica 1)</td><td>Pararlo: <code class="inline">docker ps</code> y <code class="inline">docker rm -f</code>, o cerrar la API local</td></tr>
+          <tr><td><code class="inline">container name ... is already in use</code></td><td>Queda el contenedor de la práctica 1</td><td><code class="inline">docker rm -f simpsons-api</code></td></tr>
+          <tr><td>La API da <code class="inline">Communications link failure</code></td><td>MySQL no estaba listo, o la URL usa <code class="inline">localhost</code></td><td>En Compose, usar el nombre del servicio (<code class="inline">db</code>); se arregla solo gracias a <code class="inline">restart</code>. En la práctica 1, comprobar que MySQL está arrancado en tu equipo y que la URL usa <code class="inline">host.docker.internal</code></td></tr>
+          <tr><td><code class="inline">Access denied for user</code></td><td>La contraseña del <code class="inline">.env</code> no es la que MySQL guardó al crear la base de datos</td><td><code class="inline">docker compose down -v</code> y volver a levantar</td></tr>
+          <tr><td><code class="inline">variable is not set</code> / MySQL no arranca</td><td>Falta el <code class="inline">.env</code> o alguna variable</td><td><code class="inline">cp .env.example .env</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <strong>Idea clave de la unidad</strong>
+        Una <strong>imagen</strong> es la aplicación empaquetada y un <strong>contenedor</strong> es esa imagen en ejecución. El <code class="inline">Dockerfile</code> describe cómo construir la imagen y <code class="inline">docker-compose.yml</code> cómo se ejecutan juntos varios contenedores. La misma imagen funciona en tu ordenador y en cualquier servidor: <strong>solo cambia la configuración</strong> que le pasas.
+      </div>
+
+      <div class="note">
+        <strong>Próxima sesión</strong>
+        Llevaremos esta misma idea a Azure, con una arquitectura más completa (front, API y base de datos).
+      </div>
+    </section>
+
+    <footer>
+      Despliegue de Aplicaciones Web · DAW 2º curso · Escuela Profesional Vedruna &mdash; apuntes en construcción, se irán añadiendo nuevos temas.
+    </footer>
+
+  </main>
+</div>
+</body>
+</html>
